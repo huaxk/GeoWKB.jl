@@ -1,0 +1,5 @@
+name = "GeoWKB"
+uuid = "91d0bf12-6dac-11e9-1369-1b5f7d14bfd1"
+authors = ["huaxk <huaxk@163.com>"]
+license = "MIT"
+version = "0.1.0"

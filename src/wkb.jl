@@ -87,11 +87,21 @@ function _read(data::GenericIOBuffer; withsrid=true, onlydata=false, zipmulti=tr
     if onlydata
         coords
     elseif hassrid && withsrid
-        (type=geotype, coordinates=coords,
-         meta=(srid=srid,),
-         crs=(type="name", properties=(name="EPSG$srid",)))
+        if geotype == "GeometryCollection"
+            (type=geotype, geometries=coords,
+             meta=(srid=srid,),
+             crs=(type="name", properties=(name="EPSG$srid",)))
+        else
+            (type=geotype, coordinates=coords,
+             meta=(srid=srid,),
+             crs=(type="name", properties=(name="EPSG$srid",)))
+        end
     else
-        (type=geotype, coordinates=coords)
+        if geotype == "GeometryCollection"
+            (type=geotype, geometries=coords)
+        else
+            (type=geotype, coordinates=coords)
+        end
     end
 end
 
@@ -114,6 +124,11 @@ function readrings(data::GenericIOBuffer; nb=2, swap=false)
 end
 
 function readmulti(data::GenericIOBuffer; swap=false, onlydata=true)
+    num = read(data, UInt32, swap)
+    [_read(data; onlydata=onlydata) for i in 1:num]
+end
+
+function readgc(data::GenericIOBuffer; swap=false, onlydata=false)
     num = read(data, UInt32, swap)
     [_read(data; onlydata=onlydata) for i in 1:num]
 end
@@ -220,4 +235,20 @@ end
 
 function _load(::WKBCode{WKB_ZM[:MultiPolygon]}, data::GenericIOBuffer; swap=false, onlydata=true)
     readmulti(data; swap=swap, onlydata=onlydata)
+end
+
+function _load(::WKBCode{WKB_2D[:GeometryCollection]}, data::GenericIOBuffer; swap=false, onlydata=false)
+    readgc(data; swap=swap, onlydata=onlydata)
+end
+
+function _load(::WKBCode{WKB_Z[:GeometryCollection]}, data::GenericIOBuffer; swap=false, onlydata=false)
+    readgc(data; swap=swap, onlydata=onlydata)
+end
+
+function _load(::WKBCode{WKB_M[:GeometryCollection]}, data::GenericIOBuffer; swap=false, onlydata=false)
+    readgc(data; swap=swap, onlydata=onlydata)
+end
+
+function _load(::WKBCode{WKB_ZM[:GeometryCollection]}, data::GenericIOBuffer; swap=false, onlydata=false)
+    readgc(data; swap=swap, onlydata=onlydata)
 end

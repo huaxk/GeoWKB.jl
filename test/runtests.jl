@@ -881,3 +881,142 @@ mpg2d_srid4326_wkb = WKB("\x01"*  # little endian
     @test read(mpgzm_wkb) == mpgzm
     @test read(mpg2d_srid4326_wkb) == mpg2d_srid4326
 end
+
+gc2d = (type="GeometryCollection",
+        geometries=[
+            (type="Point", coordinates=[0.0, 1.0]),
+            (type="LineString", coordinates=[
+                [102.0, 2.0], [103.0, 3.0], [104.0, 4.0]
+            ]),
+        ])
+gc2d_wkb = WKB( "\x00"*  # big endian
+                "\x00\x00\x00\x07"*  # 2d geometry collection
+                "\x00\x00\x00\x02"*  # 2 geometries in the collection
+                "\x00"*
+                "\x00\x00\x00\x01"*  # 2d point
+                "\x00\x00\x00\x00\x00\x00\x00\x00"*
+                "?\xf0\x00\x00\x00\x00\x00\x00"*
+                "\x00"*
+                "\x00\x00\x00\x02"*  # 2d linestring
+                "\x00\x00\x00\x03"*  # 3 vertices
+                "@Y\x80\x00\x00\x00\x00\x00"*
+                "@\x00\x00\x00\x00\x00\x00\x00"*
+                "@Y\xc0\x00\x00\x00\x00\x00"*
+                "@\x08\x00\x00\x00\x00\x00\x00"*
+                "@Z\x00\x00\x00\x00\x00\x00"*
+                "@\x10\x00\x00\x00\x00\x00\x00")
+gcz = (type="GeometryCollection",
+        geometries=[
+            (type="Point", coordinates=[0.0, 1.0, 2.0]),
+            (type="LineString", coordinates=[
+                [102.0, 2.0, 6.0], [103.0, 3.0, 7.0], [104.0, 4.0, 8.0]
+            ]),
+        ])
+gcz_wkb = WKB( "\x01"*  # little endian
+                "\xef\x03\x00\x00"*  # 3d geometry collection
+                "\x02\x00\x00\x00"*  # 2 geometries in the collection
+                "\x01"*
+                "\xe9\x03\x00\x00"*  # 3d point
+                "\x00\x00\x00\x00\x00\x00\x00\x00"*
+                "\x00\x00\x00\x00\x00\x00\xf0?"*
+                "\x00\x00\x00\x00\x00\x00\x00@"*
+                "\x01"*
+                "\xea\x03\x00\x00"*  # 3d linestring
+                "\x03\x00\x00\x00"*  # 3 vertices
+                "\x00\x00\x00\x00\x00\x80Y@"*
+                "\x00\x00\x00\x00\x00\x00\x00@"*
+                "\x00\x00\x00\x00\x00\x00\x18@"*
+                "\x00\x00\x00\x00\x00\xc0Y@"*
+                "\x00\x00\x00\x00\x00\x00\x08@"*
+                "\x00\x00\x00\x00\x00\x00\x1c@"*
+                "\x00\x00\x00\x00\x00\x00Z@"*
+                "\x00\x00\x00\x00\x00\x00\x10@"*
+                "\x00\x00\x00\x00\x00\x00 @")
+gcm_wkb = WKB(
+            "\x01"*  # little endian
+            "\xd7\x07\x00\x00"*
+            "\x02\x00\x00\x00"*  # 2 geometries in the collection
+            "\x01"*
+            "\xd1\x07\x00\x00"*
+            "\x00\x00\x00\x00\x00\x00\x00\x00"*
+            "\x00\x00\x00\x00\x00\x00\xf0?"*
+            "\x00\x00\x00\x00\x00\x00\x00@"*
+            "\x01"*
+            "\xd2\x07\x00\x00"*
+            "\x03\x00\x00\x00"*  # 3 vertices
+            "\x00\x00\x00\x00\x00\x80Y@"*
+            "\x00\x00\x00\x00\x00\x00\x00@"*
+            "\x00\x00\x00\x00\x00\x00\x18@"*
+            "\x00\x00\x00\x00\x00\xc0Y@"*
+            "\x00\x00\x00\x00\x00\x00\x08@"*
+            "\x00\x00\x00\x00\x00\x00\x1c@"*
+            "\x00\x00\x00\x00\x00\x00Z@"*
+            "\x00\x00\x00\x00\x00\x00\x10@"*
+            "\x00\x00\x00\x00\x00\x00 @")
+gczm = (type="GeometryCollection", geometries=[
+            (type="Point", coordinates=[0.0, 1.0, 2.0, 3.0]),
+            (type="LineString", coordinates=[
+                [102.0, 2.0, 6.0, 10.0], [103.0, 3.0, 7.0, 11.0],
+                [104.0, 4.0, 8.0, 12.0]
+            ]),
+        ])
+gczm_wkb = WKB(
+            "\x00"*  # big endian
+            "\x00\x00\x0b\xbf"*  # 4d geometry collection
+            "\x00\x00\x00\x02"*  # 2 geometries in the collection
+            "\x00"*
+            "\x00\x00\x0b\xb9"*  # 4d point
+            "\x00\x00\x00\x00\x00\x00\x00\x00"*
+            "?\xf0\x00\x00\x00\x00\x00\x00"*
+            "@\x00\x00\x00\x00\x00\x00\x00"*
+            "@\x08\x00\x00\x00\x00\x00\x00"*
+            "\x00"*
+            "\x00\x00\x0b\xba"*  # 4d linestring
+            "\x00\x00\x00\x03"*  # 3 vertices
+            "@Y\x80\x00\x00\x00\x00\x00"*
+            "@\x00\x00\x00\x00\x00\x00\x00"*
+            "@\x18\x00\x00\x00\x00\x00\x00"*
+            "@\$\x00\x00\x00\x00\x00\x00"*
+            "@Y\xc0\x00\x00\x00\x00\x00"*
+            "@\x08\x00\x00\x00\x00\x00\x00"*
+            "@\x1c\x00\x00\x00\x00\x00\x00"*
+            "@&\x00\x00\x00\x00\x00\x00"*
+            "@Z\x00\x00\x00\x00\x00\x00"*
+            "@\x10\x00\x00\x00\x00\x00\x00"*
+            "@ \x00\x00\x00\x00\x00\x00"*
+            "@(\x00\x00\x00\x00\x00\x00")
+gc2d_srid1234 = (type="GeometryCollection",
+                geometries=[
+                    (type="Point", coordinates=[0.0, 1.0]),
+                    (type="LineString", coordinates=[
+                        [102.0, 2.0], [103.0, 3.0], [104.0, 4.0]
+                    ]),
+                ],
+                meta=(srid=1234,),
+                crs=(type="name", properties=(name="EPSG1234",)))
+gc2d_srid1234_wkb = WKB(
+            "\x00"*  # big endian
+            "\x20\x00\x00\x07"*  # 2d geometry collection
+            "\x00\x00\x04\xd2"*  # srid 1234
+            "\x00\x00\x00\x02"*  # 2 geometries in the collection
+            "\x00"*  # big endian
+            "\x00\x00\x00\x01"*  # 2d point
+            "\x00\x00\x00\x00\x00\x00\x00\x00"*
+            "?\xf0\x00\x00\x00\x00\x00\x00"*
+            "\x00"*  # big endian
+            "\x00\x00\x00\x02"*  # 2d linestring
+            "\x00\x00\x00\x03"*  # 3 vertices
+            "@Y\x80\x00\x00\x00\x00\x00"*
+            "@\x00\x00\x00\x00\x00\x00\x00"*
+            "@Y\xc0\x00\x00\x00\x00\x00"*
+            "@\x08\x00\x00\x00\x00\x00\x00"*
+            "@Z\x00\x00\x00\x00\x00\x00"*
+            "@\x10\x00\x00\x00\x00\x00\x00")
+
+@testset "GeometryCollection" begin
+    @test read(gc2d_wkb) == gc2d
+    @test read(gcz_wkb) == gcz
+    @test read(gcm_wkb) == gcz
+    @test read(gczm_wkb) == gczm
+    @test read(gc2d_srid1234_wkb) == gc2d_srid1234
+end

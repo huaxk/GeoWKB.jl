@@ -3,10 +3,8 @@ import Base:read, write
 
 include("./typemaps.jl")
 include("./utils.jl")
+include("common.jl")
 
-const SRID_FLAG = UInt32(0x20)
-
-@enum Endian BigEndian=0x00 LittleEndian=0x01
 
 function sameendinan(flag::UInt8)
     if ENDIAN_BOM == 0x01020304 && Endian(flag) == BigEndian

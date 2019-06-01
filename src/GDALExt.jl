@@ -8,8 +8,6 @@ include("common.jl")
 
 export toEWKB
 
-getendian(data::Bytes) = Endian(data[1])
-
 """
 Convert a geometry extended well known binary format.
 
@@ -17,16 +15,19 @@ Convert a geometry extended well known binary format.
 * `geom`: handle on the geometry to convert to a well know binary data from.
 * `order`: One of wkbXDR or [wkbNDR] indicating MSB or LSB byte order resp.
 """
-function toEWKB(geom::AbstractGeometry, order::OGRwkbByteOrder=GDAL.wkbNDR)
-    buffer = toWKB(geom, order)
-    ref = getspatialref(geom)
-    srid = getsrid(ref)
+function toEWKB(geom::AbstractGeometry, endian::Endian=LittleEndian)
+    buffer = toWKB(geom, GDAL.OGRwkbByteOrder(UInt8(endian)))
+    srid = geom |> getspatialref |> getsrid
     if srid != nothing
-        sridbytes = srid2bytes(srid)
-        buffer = vcat(setsridflag!(buffer[1:5]), sridbytes, buffer[6:end])
+        endian = getendian(buffer)
+        header = setsridflag!(buffer[1:5], endian)
+        sridbytes = srid2bytes(srid, endian)
+        buffer = vcat(header, sridbytes, buffer[6:end])
     end
     buffer
 end
+
+getendian(data::Bytes) = Endian(data[1])
 
 function getsrid(ref::AbstractSpatialRef)
     srid = nothing
@@ -40,35 +41,30 @@ function getsrid(ref::AbstractSpatialRef)
     srid
 end
 
-function samebyteorder(order::OGRwkbByteOrder)
-    if ENDIAN_BOM == 0x04030201 && order == GDAL.wkbNDR
+function sameendian(endian::Endian)
+    if ENDIAN_BOM == LITTLE_ENDIAN_BOM && endian == LittleEndian
         true
-    elseif ENDIAN_BOM == 0x01020304 && order == GDAL.wkbXDR
+    elseif ENDIAN_BOM == BIG_ENDIAN_BOM && endian == BigEndian
         true
     else
         false
     end
 end
 
-function srid2bytes(srid::UInt32, order::OGRwkbByteOrder=GDAL.wkbNDR)
-    srid = samebyteorder(order) ? srid : bswap(srid)
+function srid2bytes(srid::UInt32, endian::Endian=LittleEndian)
+    srid = sameendian(endian) ? srid : bswap(srid)
     io = IOBuffer()
     Base.write(io, srid)
     take!(io)
 end
 
-function setsridflag!(bytes::Vector{UInt8}, order::OGRwkbByteOrder=GDAL.wkbNDR)
-    length(bytes) < 5 && @error "wkb format error"
-    pos = samebyteorder(order) ? 5 : 2
-    bytes[pos] = 0x20
-    # if bytes[1] == 0x01 #在大端机器上，这样判断和设置字节序有没有问题？
-    #     bytes[5] = 0x20
-    # elseif bytes[1] == 0x00
-    #     bytes[2] == 0x20
-    # else
-    #     @error "endian format error"
-    # end
-    bytes
+function setsridflag!(header::Bytes, endian::Endian=LittleEndian)
+    length(header) < 5 && @error "wkb format error"
+    pos = sameendian(endian) ? 5 : 2
+    header[pos] = SRID_FLAG
+    header
 end
+
+
 
 end  # module GDALExt

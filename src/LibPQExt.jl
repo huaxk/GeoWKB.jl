@@ -1,11 +1,12 @@
 module LibPQEx
 
+export register
+
 using LibPQ
 using Tables
-using ArchGDAL; const AG = ArchGDAL
+using GeoInterface
 
-include(joinpath(@__DIR__, "GDALExt.jl"))
-using GDALExt; const GE = GDALExt
+include("GDALExt.jl")
 
 """
     getTypeOid(conn::LibPQ.Connection, typname::Symbol)
@@ -64,15 +65,15 @@ function register(conn::LibPQ.Connection, typname::Symbol, type::Type, func_from
     nothing
 end
 
-function register(conn::LibPQ.Connection, mod::Module)
-    if Symbol(mod) == :ArchGDAL
-        funcfrom(pqv::LibPQ.PQValue) = GE.fromEWKB(LibPQ.string_view(pqv)) |> bytes2hex
-        functo(geo::AbstractGeometry) = GE.toEWKB(hex2bytes(geo))
-        register(conn, :geometry, mod.AbstractGeometry, funcfrom, functo)
-    elseif Symbol(mod) == :LibGEOS
-        funcfrom(pqv::LibPQ.PQValue) = readwkb(LibPQ.string_view(pqv), hex=true)
-        functo(geo::AbstractGeometry) = writewkb(geo, hex=true)
-        register(conn, :geometry, mod.GeoInterface.AbstractGeometry, funcfrom, functo)
+function register(conn::LibPQ.Connection, mod::Symbol)
+    if mod == :ArchGDAL
+        register(conn, :geometry, GeoInterface.AbstractGeometry,
+            (pqv::LibPQ.PQValue) -> GDALExt.fromEWKB(hex2bytes(LibPQ.string_view(pqv))),
+            (geo::AbstractGeometry) -> bytes2hex(GDALExt.toEWKB(geo)))
+    # elseif mod == :LibGEOS
+    #     register(conn, :geometry, GeoInterface.GeoInterface.AbstractGeometry, 
+    #         (pqv::LibPQ.PQValue) -> readwkb(LibPQ.string_view(pqv), hex=true),
+    #         (geo::AbstractGeometry) -> writewkb(geo, hex=true))
     end
 end
 

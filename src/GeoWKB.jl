@@ -1,5 +1,10 @@
 module GeoWKB
 
-greet() = print("Hello World!")
+include("GDALExt.jl")
+include("LibPQExt.jl")
+using .GDALExt
+using .LibPQEx
+
+export register, fromEWKB, toEWKB
 
 end # module

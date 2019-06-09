@@ -1,13 +1,13 @@
 module GDALExt
 
+export fromEWKB, toEWKB
+
 using GDAL
 using ArchGDAL: fromWKB, toWKB, getspatialref, setspatialref!, getattrvalue, importEPSG,
     OGRwkbByteOrder, AbstractGeometry, AbstractSpatialRef
 using ArchGDAL; const AG = ArchGDAL
 
 include("common.jl")
-
-export fromEWKB, toEWKB
 
 getendian(data::Bytes) = Endian(data[1])
 

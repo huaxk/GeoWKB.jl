@@ -9,6 +9,13 @@ using GeoInterface
 include("GDALExt.jl")
 
 """
+    Base.get(tm::PQTypeMap, key, default)
+
+From PQTypeMap get value by key, if key is not exist return default value.
+"""
+Base.get(tm::LibPQ.PQTypeMap, key, default) = get(tm.type_map, key, default)
+
+"""
     getTypeOid(conn::LibPQ.Connection, typname::Symbol)
 Query oid by typname from LibPQ connection.
 """
@@ -71,7 +78,7 @@ function register(conn::LibPQ.Connection, mod::Symbol)
             (pqv::LibPQ.PQValue) -> GDALExt.fromEWKB(hex2bytes(LibPQ.string_view(pqv))),
             (geo::AbstractGeometry) -> bytes2hex(GDALExt.toEWKB(geo)))
     # elseif mod == :LibGEOS
-    #     register(conn, :geometry, GeoInterface.GeoInterface.AbstractGeometry, 
+    #     register(conn, :geometry, GeoInterface.GeoInterface.AbstractGeometry,
     #         (pqv::LibPQ.PQValue) -> readwkb(LibPQ.string_view(pqv), hex=true),
     #         (geo::AbstractGeometry) -> writewkb(geo, hex=true))
     end
